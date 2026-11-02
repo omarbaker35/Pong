@@ -1,6 +1,6 @@
 # Pong (Love2D)
 
-**Name:** [Your Full Name]  
+**Name:** Omar Baker  
 **Class / Section:** [Your Class / Section]
 
 ## Description
@@ -23,14 +23,23 @@ love .
 | --- | --- | --- |
 | Move up | `W` | `Up` arrow |
 | Move down | `S` | `Down` arrow |
-| Serve the ball | `Space` | `Space` |
+| Dash | `Left Shift` | `Right Shift` |
+| Serve / rematch | `Space` | `Space` |
+| Toggle AI | `Tab` | `Tab` |
+| Restart match | `R` | `R` |
 | Quit | `Escape` | `Escape` |
 
 ## Own changes
 
-1. **Different paddle colors** — left paddle is cyan, right paddle is coral.
+1. **Different paddle colors** — left cyan plasma / right coral plasma.
 2. **Space to serve** — the ball waits in the center until you press Space.
 3. **Ball speed-up** — after each paddle hit, the ball gets about 5% faster.
+4. **Neon Plasma visuals** — fake-3D court, plasma shader, trails, particles, shake, bloom, SFX.
+5. **Power-ups** — GROW, FREEZE, FIREBALL, SHIELD orbs spawn mid-court.
+6. **Heat / combo system** — rallies raise heat and show combo banners.
+7. **AI opponent** — toggle with Tab (on by default).
+8. **Dash** — short burst dodge with cooldown.
+9. **Slow-mo goals + first to 7** victory screen.
 
 ## Screenshot
 
