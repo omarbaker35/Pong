@@ -4,6 +4,7 @@
 
 local WINDOW_WIDTH = 800
 local WINDOW_HEIGHT = 600
+local MAX_BALL_SPEED = 700
 
 local function resetBall(serving)
     ball.x = (WINDOW_WIDTH - ball.size) / 2
@@ -23,9 +24,9 @@ function love.load()
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT)
     love.math.setRandomSeed(os.time())
 
-    local paddleWidth = 15
-    local paddleHeight = 100
-    local paddleSpeed = 400
+    local paddleWidth = 18
+    local paddleHeight = 110
+    local paddleSpeed = 480
     local margin = 30
 
     -- Different color per paddle (custom change)
@@ -80,37 +81,62 @@ function checkCollision(a, b)
         and b.y < a.y + a.height
 end
 
-local function ballAsRect()
-    return {
-        x = ball.x,
-        y = ball.y,
-        width = ball.size,
-        height = ball.size
-    }
+local function verticalOverlap(ballY, ballSize, paddle)
+    return ballY < paddle.y + paddle.height and paddle.y < ballY + ballSize
 end
 
-local function bounceOffPaddle(paddle)
-    local ballRect = ballAsRect()
-    if not checkCollision(ballRect, paddle) then
-        return
-    end
+local function reflectFromPaddle(paddle, goingRight)
+    -- Bounce direction depends on which paddle was hit, not previous dx
+    ball.speed = math.min(ball.speed * ball.speedBoost, MAX_BALL_SPEED)
 
-    -- Reverse horizontal velocity and boost speed a little (custom)
-    ball.speed = ball.speed * ball.speedBoost
-    local direction = ball.dx > 0 and -1 or 1
-    ball.dx = math.abs(ball.dx) * direction * -1
-    -- Keep vertical component proportional, but scale to new speed magnitude
-    local length = math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
-    if length > 0 then
-        ball.dx = (ball.dx / length) * ball.speed
-        ball.dy = (ball.dy / length) * ball.speed
-    end
+    local paddleCenter = paddle.y + paddle.height / 2
+    local ballCenter = ball.y + ball.size / 2
+    local offset = (ballCenter - paddleCenter) / (paddle.height / 2)
+    offset = math.max(-1, math.min(1, offset))
 
-    -- Unstick: move ball just outside the paddle
-    if paddle == player1 then
+    local angle = offset * (math.pi / 4) -- up to 45 degrees
+    local dir = goingRight and 1 or -1
+    ball.dx = math.cos(angle) * ball.speed * dir
+    ball.dy = math.sin(angle) * ball.speed
+
+    -- Unstick: place ball just outside the paddle face
+    if goingRight then
         ball.x = paddle.x + paddle.width
     else
         ball.x = paddle.x - ball.size
+    end
+end
+
+-- Detect overlap OR tunneling (ball jumped past the paddle face in one frame)
+local function tryHitPaddle(paddle, prevX, isLeft)
+    local faceX
+    if isLeft then
+        faceX = paddle.x + paddle.width
+        -- Only when moving left toward this paddle
+        if ball.dx >= 0 then
+            return
+        end
+        local crossed = prevX >= faceX and ball.x < faceX
+        local overlaps = checkCollision({
+            x = ball.x, y = ball.y, width = ball.size, height = ball.size
+        }, paddle)
+        if (crossed or overlaps) and verticalOverlap(ball.y, ball.size, paddle) then
+            reflectFromPaddle(paddle, true)
+        end
+    else
+        faceX = paddle.x
+        if ball.dx <= 0 then
+            return
+        end
+        local ballRightPrev = prevX + ball.size
+        local ballRight = ball.x + ball.size
+        local crossed = ballRightPrev <= faceX and ballRight > faceX
+        local overlaps = checkCollision({
+            x = ball.x, y = ball.y, width = ball.size, height = ball.size
+        }, paddle)
+        if (crossed or overlaps) and verticalOverlap(ball.y, ball.size, paddle) then
+            reflectFromPaddle(paddle, false)
+        end
     end
 end
 
@@ -136,6 +162,8 @@ function love.update(dt)
         return
     end
 
+    local prevX = ball.x
+
     -- Move ball using velocity * dt (frame-rate independent)
     ball.x = ball.x + ball.dx * dt
     ball.y = ball.y + ball.dy * dt
@@ -143,14 +171,14 @@ function love.update(dt)
     -- Bounce off top / bottom walls
     if ball.y <= 0 then
         ball.y = 0
-        ball.dy = -ball.dy
+        ball.dy = math.abs(ball.dy)
     elseif ball.y + ball.size >= WINDOW_HEIGHT then
         ball.y = WINDOW_HEIGHT - ball.size
-        ball.dy = -ball.dy
+        ball.dy = -math.abs(ball.dy)
     end
 
-    bounceOffPaddle(player1)
-    bounceOffPaddle(player2)
+    tryHitPaddle(player1, prevX, true)
+    tryHitPaddle(player2, prevX, false)
 
     -- Score if ball leaves left/right side
     if ball.x + ball.size < 0 then
