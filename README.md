@@ -1,7 +1,7 @@
 # Pong (Love2D)
 
-**Name:** Omar Baker  
-**Class / Section:** [Your Class / Section]
+**Name:** Omar Nasser Shehadeh Baker (عمر ناصر شحاده بكر)  
+**Class / Section:** Mon & Wed, 8:00–10:00 (اثنين وأربعاء، الساعة 8–10)
 
 ## Description
 
@@ -45,10 +45,6 @@ love .
 
 ![Game screenshot](screenshots/pong.png)
 
-*(Add a screenshot of the running game to `screenshots/pong.png`.)*
-
 ## Demo video
 
 [Watch the short demo](demo/pong-demo.mp4)
-
-*(Add a short demo video to `demo/pong-demo.mp4`.)*
